@@ -99,8 +99,20 @@ window.addEventListener("load", () => {
 
     if (cameras.length > 0 && cameras[0].id) {
       populateCameraDropdown(cameras);
-      currentCameraId = cameras[0].id;
-      startCamera(currentCameraId);
+      const rearCam = cameras.find(c => 
+        c.label.toLowerCase().includes("back") || 
+        c.label.toLowerCase().includes("rear") || 
+        c.label.toLowerCase().includes("environment")
+      );
+      
+      if (rearCam) {
+        currentCameraId = rearCam.id;
+        startCamera(currentCameraId);
+      } else {
+        // fallback to facingMode
+        startCamera({ facingMode: { exact: "environment" } });
+      }
+
     } else {
       showStatus("❌ No usable cameras found", false);
       select.innerHTML = "<option disabled>No camera available</option>";
