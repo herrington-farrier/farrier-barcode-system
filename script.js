@@ -66,8 +66,12 @@ function startCamera(cameraIdOrFacingMode = null) {
 
 
 function populateCameraDropdown(cameras) {
-  const select = document.getElementById("cameraSelect");
-  select.innerHTML = ""; // clear old entries
+ const select = document.getElementById("cameraSelect");
+  if (!select) {
+    console.warn("Dropdown not found. Skipping dropdown population.");
+    return;
+  }
+  select.innerHTML = "";
   cameras.forEach(cam => {
     const option = document.createElement("option");
     option.value = cam.id;
