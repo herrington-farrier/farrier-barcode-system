@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000"/>
+  <title>Farrier Log Scan</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 1rem; }
+    #reader { width: 300px; margin: auto; }
+    #status { margin-top: 1rem; font-weight: bold; }
+    button { padding: 10px 20px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Scan Barcode</h2>
+  <div id="reader"></div>
+  <div id="status">Waiting for scan...</div>
+
+  <script src="script.js"></script>
+</body>
+</html>
