@@ -38,15 +38,24 @@ function flushQueue() {
   }
 }
 
-function startCamera(cameraId) {
-  if (!cameraId) {
-    showStatus("❌ No camera ID provided", false);
-    return;
+function startCamera(cameraIdOrFacingMode = null) {
+  const config = { fps: 10, qrbox: 250 };
+
+  let startConfig;
+
+  if (cameraIdOrFacingMode) {
+    if (typeof cameraIdOrFacingMode === "object") {
+      startConfig = cameraIdOrFacingMode;
+    } else {
+      startConfig = { deviceId: { exact: cameraIdOrFacingMode } };
+    }
+  } else {
+    startConfig = { facingMode: { exact: "environment" } };
   }
 
   scanner.start(
-    cameraId,
-    { fps: 10, qrbox: 250 },
+    startConfig,
+    config,
     value => {
       scanner.stop();
       submitValue(value);
@@ -54,6 +63,7 @@ function startCamera(cameraId) {
     }
   ).catch(err => showStatus(`Camera start error: ${err}`, false));
 }
+
 
 function populateCameraDropdown(cameras) {
   const select = document.getElementById("cameraSelect");
@@ -97,29 +107,30 @@ window.addEventListener("load", () => {
     const select = document.getElementById("cameraSelect");
     console.log("Dropdown detected:", select);
 
-    if (cameras.length > 0 && cameras[0].id) {
+    if (cameras.length > 0) {
       populateCameraDropdown(cameras);
-      const rearCam = cameras.find(c => 
-        c.label.toLowerCase().includes("back") || 
-        c.label.toLowerCase().includes("rear") || 
-        c.label.toLowerCase().includes("environment")
-      );
-      
-      if (rearCam) {
+
+      const rearCam = cameras.find(c => (
+        (c.label || "").toLowerCase().includes("back") ||
+        (c.label || "").toLowerCase().includes("rear") ||
+        (c.label || "").toLowerCase().includes("environment")
+      ));
+
+      if (rearCam && rearCam.id) {
         currentCameraId = rearCam.id;
         startCamera(currentCameraId);
       } else {
-        // fallback to facingMode
-        startCamera({ facingMode: { exact: "environment" } });
+        console.warn("No labeled rear cam found, falling back to facingMode.");
+        startCamera(); // fallback to facingMode: environment
       }
-
     } else {
-      showStatus("❌ No usable cameras found", false);
-      select.innerHTML = "<option disabled>No camera available</option>";
+      showStatus("❌ No cameras available", false);
     }
   }).catch(err => {
     console.error("getCameras error:", err);
     showStatus(`Camera error: ${err}`, false);
+    // fallback to default rear camera if possible
+    startCamera(); // will use facingMode: environment
   });
 
   setInterval(flushQueue, 5000);
