@@ -50,6 +50,9 @@ function startCamera(cameraId) {
   ).catch(err => showStatus(`Camera start error: ${err}`, false));
 }
 
+console.log("Dropdown detected:", document.getElementById("cameraSelect"));
+console.log("Cameras found:", cameras);
+
 function populateCameraDropdown(cameras) {
   const select = document.getElementById("cameraSelect");
   cameras.forEach(cam => {
