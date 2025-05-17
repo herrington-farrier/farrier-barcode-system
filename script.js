@@ -38,20 +38,18 @@ function flushQueue() {
 setInterval(flushQueue, 5000);
 
 const scanner = new Html5Qrcode("reader");
-Html5Qrcode.getCameras().then(cameras => {
-  const backCam = cameras.find(cam => cam.label.toLowerCase().includes("back") || cam.label.toLowerCase().includes("rear") || cam.label.toLowerCase().includes("environment")) || cameras[0];
-  if (backCam) {
-    scanner.start(
-      backCam.id,
-      { fps: 10, qrbox: 250 },
-      value => {
-        scanner.stop();
-        submitValue(value);
-        setTimeout(() => location.reload(), 1500);
-      }
-    );
+scanner.start(
+  { facingMode: { exact: "environment" } },
+  { fps: 10, qrbox: 250 },
+  value => {
+    scanner.stop();
+    submitValue(value);
+    setTimeout(() => location.reload(), 1500);
   }
-}).catch(err => showStatus(`Camera error: ${err}`, false));
+).catch(err => {
+  showStatus(`⚠️ Failed to start rear camera: ${err}`, false);
+});
+
 
 
 window.addEventListener("load", () => {
