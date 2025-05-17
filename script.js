@@ -39,6 +39,11 @@ function flushQueue() {
 }
 
 function startCamera(cameraId) {
+  if (!cameraId) {
+    showStatus("❌ No camera ID provided", false);
+    return;
+  }
+
   scanner.start(
     cameraId,
     { fps: 10, qrbox: 250 },
@@ -50,11 +55,9 @@ function startCamera(cameraId) {
   ).catch(err => showStatus(`Camera start error: ${err}`, false));
 }
 
-console.log("Dropdown detected:", document.getElementById("cameraSelect"));
-console.log("Cameras found:", cameras);
-
 function populateCameraDropdown(cameras) {
   const select = document.getElementById("cameraSelect");
+  select.innerHTML = ""; // clear old entries
   cameras.forEach(cam => {
     const option = document.createElement("option");
     option.value = cam.id;
@@ -65,18 +68,47 @@ function populateCameraDropdown(cameras) {
     scanner.stop().then(() => {
       currentCameraId = select.value;
       startCamera(currentCameraId);
+    }).catch(() => {
+      currentCameraId = select.value;
+      startCamera(currentCameraId);
     });
   });
 }
 
+function manualStart() {
+  const select = document.getElementById("cameraSelect");
+  const selectedCam = select.value;
+  if (selectedCam) {
+    scanner.stop().then(() => {
+      startCamera(selectedCam);
+    }).catch(() => {
+      startCamera(selectedCam);
+    });
+  } else {
+    showStatus("❌ No camera selected", false);
+  }
+}
+
 window.addEventListener("load", () => {
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+
   Html5Qrcode.getCameras().then(cameras => {
-    if (cameras.length > 0) {
+    console.log("Cameras found:", cameras);
+    const select = document.getElementById("cameraSelect");
+    console.log("Dropdown detected:", select);
+
+    if (cameras.length > 0 && cameras[0].id) {
       populateCameraDropdown(cameras);
       currentCameraId = cameras[0].id;
       startCamera(currentCameraId);
+    } else {
+      showStatus("❌ No usable cameras found", false);
+      select.innerHTML = "<option disabled>No camera available</option>";
     }
+  }).catch(err => {
+    console.error("getCameras error:", err);
+    showStatus(`Camera error: ${err}`, false);
   });
+
   setInterval(flushQueue, 5000);
 });
