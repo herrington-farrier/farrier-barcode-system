@@ -2,6 +2,9 @@ const formID = "1FAIpQLSfNv6iahACDQUDPNtUK0Rm1tbHidlwopDH8w3xJe4FaRKjpqg";
 const entryID = "entry.1356359293";
 const formURL = `https://docs.google.com/forms/d/e/${formID}/formResponse?`;
 
+const scanner = new Html5Qrcode("reader");
+let currentCameraId = null;
+
 function playBeep() {
   const beep = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YVwAAAAA");
   beep.play();
@@ -35,23 +38,42 @@ function flushQueue() {
   }
 }
 
-setInterval(flushQueue, 5000);
+function startCamera(cameraId) {
+  scanner.start(
+    cameraId,
+    { fps: 10, qrbox: 250 },
+    value => {
+      scanner.stop();
+      submitValue(value);
+      setTimeout(() => location.reload(), 1500);
+    }
+  ).catch(err => showStatus(`Camera start error: ${err}`, false));
+}
 
-const scanner = new Html5Qrcode("reader");
-scanner.start(
-  { facingMode: { exact: "environment" } },
-  { fps: 10, qrbox: 250 },
-  value => {
-    scanner.stop();
-    submitValue(value);
-    setTimeout(() => location.reload(), 1500);
-  }
-).catch(err => {
-  showStatus(`⚠️ Failed to start rear camera: ${err}`, false);
-});
-
-
+function populateCameraDropdown(cameras) {
+  const select = document.getElementById("cameraSelect");
+  cameras.forEach(cam => {
+    const option = document.createElement("option");
+    option.value = cam.id;
+    option.text = cam.label || `Camera ${select.length + 1}`;
+    select.appendChild(option);
+  });
+  select.addEventListener("change", () => {
+    scanner.stop().then(() => {
+      currentCameraId = select.value;
+      startCamera(currentCameraId);
+    });
+  });
+}
 
 window.addEventListener("load", () => {
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+  Html5Qrcode.getCameras().then(cameras => {
+    if (cameras.length > 0) {
+      populateCameraDropdown(cameras);
+      currentCameraId = cameras[0].id;
+      startCamera(currentCameraId);
+    }
+  });
+  setInterval(flushQueue, 5000);
 });
