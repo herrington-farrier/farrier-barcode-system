@@ -1,0 +1,9 @@
+{
+  "name": "Farrier Log Scanner",
+  "short_name": "ScanLog",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "description": "Offline barcode-to-form scanner for farrier logging",
+  "icons": []
+}
